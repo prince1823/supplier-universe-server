@@ -1,0 +1,13 @@
+name = "colab91-supplier-universe"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "supplier-universe"
+database_id = "b367f2f5-86c1-48e3-88f0-d191d892ece7"
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true
