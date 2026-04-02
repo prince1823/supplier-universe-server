@@ -1,4 +1,4 @@
-name = "colab91-supplier-universe"
+name = "universe-sync"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
