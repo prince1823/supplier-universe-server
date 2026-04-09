@@ -930,24 +930,17 @@ async function parseDBFile(file) {
   duckConn = await duckDB.connect();
   await duckConn.query("ATTACH 'universe.db' AS uploaded (READ_ONLY)");
 
-  const tables = await duckConn.query(
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'uploaded' AND table_name = 'suppliers'"
-  );
-  let prefix = 'uploaded.';
-  if (tables.numRows === 0) {
-    const mainTables = await duckConn.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_name = 'suppliers'"
-    );
-    if (mainTables.numRows === 0) {
-      throw new Error('No "suppliers" table found in the database file');
-    }
-    prefix = '';
-  }
-
+  let prefix = '';
   try {
     await duckConn.query('SELECT COUNT(*) FROM uploaded.suppliers');
+    prefix = 'uploaded.';
   } catch {
-    prefix = '';
+    try {
+      await duckConn.query('SELECT COUNT(*) FROM suppliers');
+      prefix = '';
+    } catch {
+      throw new Error('No "suppliers" table found in the database file');
+    }
   }
 
   const result = await duckConn.query(
