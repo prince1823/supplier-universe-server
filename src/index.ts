@@ -646,7 +646,7 @@ function renderVersions(versions) {
 
 async function downloadVersion(versionId, versionNumber) {
   try {
-    showToast('Downloading suppliers for v' + versionNumber + '...');
+    toast('Downloading suppliers for v' + versionNumber + '...');
     const resp = await fetch(BASE + '/api/versions/' + versionId + '/suppliers');
     if (!resp.ok) throw new Error('Failed to fetch suppliers');
     const data = await resp.json();
@@ -661,9 +661,9 @@ async function downloadVersion(versionId, versionNumber) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Downloaded suppliers_v' + versionNumber + '.json');
+    toast('Downloaded suppliers_v' + versionNumber + '.json');
   } catch (err) {
-    showToast('Download failed: ' + err.message);
+    toast('Download failed: ' + err.message);
   }
 }
 
