@@ -930,19 +930,26 @@ async function parseDBFile(file) {
   duckConn = await duckDB.connect();
   await duckConn.query("ATTACH 'universe.db' AS uploaded (READ_ONLY)");
 
-  let prefix = '';
+  let prefix = 'uploaded.';
   try {
     await duckConn.query('SELECT COUNT(*) FROM uploaded.suppliers');
-    prefix = 'uploaded.';
-  } catch {
+  } catch (e1) {
+    console.warn('uploaded.suppliers not found, trying without prefix:', e1.message);
     try {
       await duckConn.query('SELECT COUNT(*) FROM suppliers');
       prefix = '';
-    } catch {
+    } catch (e2) {
+      console.error('suppliers also not found:', e2.message);
+      // List all available tables for debugging
+      try {
+        const allTables = await duckConn.query("SELECT table_catalog, table_schema, table_name FROM information_schema.tables");
+        console.log('Available tables:', allTables.toArray().map(r => r.table_catalog + '.' + r.table_schema + '.' + r.table_name));
+      } catch {}
       throw new Error('No "suppliers" table found in the database file');
     }
   }
 
+  console.log('Using prefix:', JSON.stringify(prefix));
   const result = await duckConn.query(
     'SELECT id, supplier_name, aliases, parent_supplier_id, parent_name, supplier_info, mapped_taxonomy_paths, category_a_supplier, created_at, updated_at FROM ' + prefix + 'suppliers ORDER BY supplier_name'
   );
