@@ -378,6 +378,8 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   .btn-primary:hover { background: #1d4ed8; }
   .btn-danger { color: #dc2626; border-color: #fca5a5; }
   .btn-danger:hover { background: #fef2f2; }
+  .btn-success { color: #16a34a; border-color: #86efac; }
+  .btn-success:hover { background: #f0fdf4; }
   .btn-sm { padding: 4px 8px; font-size: 12px; }
   .actions { display: flex; gap: 6px; }
 
@@ -631,12 +633,38 @@ function renderVersions(versions) {
       + '<td>' + statusBadge + '</td>'
       + '<td class="actions">'
       +   '<button class="btn btn-sm" onclick="viewSuppliers(' + v.id + ', ' + v.version_number + ')">View</button>'
+      +   '<button class="btn btn-sm btn-success" onclick="downloadVersion(' + v.id + ', ' + v.version_number + ')">Download</button>'
       +   '<button class="btn btn-sm' + (hasNotes ? ' btn-primary' : '') + '" onclick="editNotes(' + v.id + ')">Notes' + (hasNotes ? ' *' : '') + '</button>'
       +   '<button class="btn btn-sm btn-danger" onclick="deleteVersion(' + v.id + ', ' + v.version_number + ')">Delete</button>'
       + '</td></tr>';
   }
   html += '</tbody></table>';
   wrap.innerHTML = html;
+}
+
+// ─── Download Version ───────────────────────────────────────────────────────
+
+async function downloadVersion(versionId, versionNumber) {
+  try {
+    showToast('Downloading suppliers for v' + versionNumber + '...');
+    const resp = await fetch(BASE + '/api/versions/' + versionId + '/suppliers');
+    if (!resp.ok) throw new Error('Failed to fetch suppliers');
+    const data = await resp.json();
+    const suppliers = data.suppliers || [];
+    const json = JSON.stringify(suppliers, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'suppliers_v' + versionNumber + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Downloaded suppliers_v' + versionNumber + '.json');
+  } catch (err) {
+    showToast('Download failed: ' + err.message);
+  }
 }
 
 // ─── Supplier Browser ────────────────────────────────────────────────────────
