@@ -505,6 +505,11 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     <h2 id="suppliersModalTitle">Suppliers — Version</h2>
     <div class="search-bar">
       <input type="text" id="supplierSearch" placeholder="Search suppliers..." oninput="filterSuppliers()" />
+      <label style="display:flex;align-items:center;gap:6px;padding:0 12px;font-size:14px;color:#374151;white-space:nowrap;cursor:pointer;border:1px solid #d1d5db;border-radius:8px;background:#fff">
+        <input type="checkbox" id="catAOnly" onchange="filterSuppliers()" style="cursor:pointer" />
+        CAT A only
+      </label>
+      <span id="supplierCountLabel" style="display:flex;align-items:center;color:#6b7280;font-size:13px;white-space:nowrap"></span>
     </div>
     <div class="modal-body" id="suppliersTableWrap"></div>
     <div class="modal-actions">
@@ -674,24 +679,30 @@ async function viewSuppliers(versionId, versionNumber) {
   document.getElementById('suppliersModal').classList.add('active');
   document.getElementById('suppliersTableWrap').innerHTML = '<div class="empty">Loading...</div>';
   document.getElementById('supplierSearch').value = '';
+  document.getElementById('catAOnly').checked = false;
 
   const resp = await fetch(BASE + '/api/versions/' + versionId + '/suppliers');
   const data = await resp.json();
   allModalSuppliers = data.suppliers || [];
-  renderSupplierTable(allModalSuppliers);
+  filterSuppliers();
 };
 
 function filterSuppliers() {
   const q = document.getElementById('supplierSearch').value.toLowerCase();
-  if (!q) {
-    renderSupplierTable(allModalSuppliers);
-    return;
+  const catAOnly = document.getElementById('catAOnly').checked;
+  let filtered = allModalSuppliers;
+  if (catAOnly) {
+    filtered = filtered.filter(s => s.category_a_supplier);
   }
-  const filtered = allModalSuppliers.filter(s =>
-    s.supplier_name.toLowerCase().includes(q) ||
-    (s.aliases && s.aliases.toLowerCase().includes(q))
-  );
+  if (q) {
+    filtered = filtered.filter(s =>
+      s.supplier_name.toLowerCase().includes(q) ||
+      (s.aliases && s.aliases.toLowerCase().includes(q))
+    );
+  }
   renderSupplierTable(filtered);
+  const lbl = document.getElementById('supplierCountLabel');
+  if (lbl) lbl.textContent = filtered.length + ' / ' + allModalSuppliers.length;
 };
 
 function renderSupplierTable(suppliers) {
